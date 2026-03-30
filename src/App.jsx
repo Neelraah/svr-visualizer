@@ -21,121 +21,145 @@ export default function App() {
     setSteps(steps);
     setLossHistory(lossHistory);
     setIndex(0);
+    setPlaying(false);
   };
 
-
   useEffect(() => {
-  if (!playing || steps.length === 0) return;
+    if (!playing || steps.length === 0) return;
 
-  const interval = setInterval(() => {
-    setIndex((i) => {
-      if (i >= steps.length - 1) {
-        clearInterval(interval);
-        return i;
-      }
-      return i + 1;
-    });
-  }, 500);
+    const interval = setInterval(() => {
+      setIndex((i) => {
+        if (i >= steps.length - 1) {
+          clearInterval(interval);
+          setPlaying(false);
+          return i;
+        }
+        return i + 1;
+      });
+    }, 500);
 
-  return () => clearInterval(interval);
-}, [playing, steps]);
-
+    return () => clearInterval(interval);
+  }, [playing, steps]);
 
   return (
-    <div className="container">
+    <div className="app-shell">
+      <header className="hero card">
+        <span className="eyebrow">Machine Learning Playground</span>
+        <h1>SVR Visualizer</h1>
+        <p>
+          Explore how Support Vector Regression learns by iteratively fitting a
+          prediction curve, discovering support vectors, and reducing loss.
+        </p>
+      </header>
 
-      <h1>SVR Visualizer</h1>
+      <section className="card info-grid">
+        <article>
+          <h2>What is SVR?</h2>
+          <p>
+            Support Vector Regression predicts continuous values while allowing
+            small errors within an <strong>epsilon (ε)</strong> margin.
+          </p>
+          <ul>
+            <li>
+              <strong>Epsilon Tube:</strong> area where small deviations are
+              ignored
+            </li>
+            <li>
+              <strong>Support Vectors:</strong> key points outside the margin
+            </li>
+            <li>
+              <strong>Kernel Trick:</strong> captures nonlinear patterns
+            </li>
+          </ul>
+        </article>
 
-      <div className="card">
-  <h2>What is Support Vector Regression (SVR)?</h2>
+        <article>
+          <h2>Concept Video</h2>
+          <div className="video-container">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/T5pnH5XnG2A"
+              title="SVR Explanation"
+              frameBorder="0"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </article>
+      </section>
 
-  <p>
-    Support Vector Regression (SVR) is a machine learning algorithm used for predicting continuous values.
-    Instead of fitting all data points exactly, SVR tries to fit a function within a margin of tolerance
-    called <strong>epsilon (ε)</strong>.
-  </p>
+      <section className="panel-grid input-grid">
+        <div className="card">
+          <DataInput setData={setData} />
+        </div>
+        <div className="card">
+          <Controls params={params} setParams={setParams} />
+        </div>
+      </section>
 
-  <ul>
-    <li><strong>Epsilon Tube:</strong> Region where errors are ignored</li>
-    <li><strong>Support Vectors:</strong> Points outside the margin that influence the model</li>
-    <li><strong>Kernel Trick:</strong> Allows modeling nonlinear relationships</li>
-  </ul>
+      <section className="card control-panel">
+        <div className="panel-header">
+          <h3>Training Controls</h3>
+          <span className="step-pill">
+            Step: {steps.length ? index + 1 : 0} / {steps.length}
+          </span>
+        </div>
 
-  <p>
-    This visualizer shows how SVR learns step-by-step by adjusting the model,
-    identifying support vectors, and minimizing error over iterations.
-  </p>
-</div>
+        <div className="controls-row">
+          <button className="btn btn-primary" onClick={handleTrain}>
+            Train Model
+          </button>
+          <button
+            className="btn btn-success"
+            onClick={() => setPlaying(true)}
+            disabled={playing || steps.length === 0}
+          >
+            ▶ Play
+          </button>
+          <button
+            className="btn btn-muted"
+            onClick={() => setPlaying(false)}
+            disabled={!playing}
+          >
+            ⏸ Pause
+          </button>
+        </div>
 
-<div className="card">
-  <h2>Concept Explanation Video</h2>
+        <div className="controls-row">
+          <button
+            className="btn"
+            onClick={() => setIndex((i) => Math.max(i - 1, 0))}
+            disabled={index === 0 || steps.length === 0}
+          >
+            ⬅ Prev
+          </button>
+          <button
+            className="btn"
+            onClick={() => setIndex((i) => Math.min(i + 1, steps.length - 1))}
+            disabled={index === steps.length - 1 || steps.length === 0}
+          >
+            Next ➡
+          </button>
+        </div>
 
-  <div className="video-container">
-    <iframe
-      width="100%"
-      height="400"
-      src="https://www.youtube.com/embed/T5pnH5XnG2A"
-      title="SVR Explanation"
-      frameBorder="0"
-      allowFullScreen
-    ></iframe>
-  </div>
-</div>
+        <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length || 1} aria-valuenow={steps.length ? index + 1 : 0}>
+          <div
+            className="progress-fill"
+            style={{
+              width: `${steps.length ? ((index + 1) / steps.length) * 100 : 0}%`,
+            }}
+          />
+        </div>
+      </section>
 
-      <div className="row">
-        <DataInput setData={setData} />
-        <Controls params={params} setParams={setParams} />
-      </div>
-
-     <div className="card">
-  <h3>Controls</h3>
-
-  <div className="controls-row">
-    <button onClick={handleTrain}>Train</button>
-
-    <button
-      onClick={() => setPlaying(true)}
-      disabled={playing}
-    >
-      ▶ Play
-    </button>
-
-    <button
-      onClick={() => setPlaying(false)}
-      disabled={!playing}
-    >
-      ⏸ Pause
-    </button>
-  </div>
-
-  <div className="controls-row">
-    <button
-      onClick={() => setIndex(i => Math.max(i - 1, 0))}
-      disabled={index === 0}
-    >
-      ⬅ Prev
-    </button>
-
-    <button
-      onClick={() =>
-        setIndex(i => Math.min(i + 1, steps.length - 1))
-      }
-      disabled={index === steps.length - 1}
-    >
-      Next ➡
-    </button>
-  </div>
-
-  <div className="progress">
-    Step: {steps.length ? index + 1 : 0} / {steps.length}
-  </div>
-</div>
-
-      <div className="row">
-        <Visualization data={data} step={currentStep} />
-        <StepViewer step={currentStep} />
-      </div>
-
+      <section className="panel-grid viz-grid">
+        <div className="card viz-card">
+          <Visualization data={data} step={currentStep} />
+        </div>
+        <div className="card step-card">
+          <StepViewer step={currentStep} lossHistory={lossHistory} />
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,137 +1,185 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 
+const CHART_WIDTH = 760;
+const CHART_HEIGHT = 420;
+const MARGIN = { top: 24, right: 24, bottom: 44, left: 52 };
+
 export default function Visualization({ data, step }) {
-  const ref = useRef();
+  const ref = useRef(null);
 
   useEffect(() => {
-    if (!data.length || !step) return;
-
-    const width = 600;
-    const height = 400;
-    const margin = 40;
-
     const svg = d3.select(ref.current);
     svg.selectAll("*").remove();
 
-    const xScale = d3.scaleLinear()
-      .domain(d3.extent(data, d => d.x))
-      .range([margin, width - margin]);
+    if (!data?.length || !step) return;
 
-    const yScale = d3.scaleLinear()
-      .domain(d3.extent(data, d => d.y))
-      .range([height - margin, margin]);
+    const width = CHART_WIDTH;
+    const height = CHART_HEIGHT;
 
-    // axes
-    svg.append("g")
-      .attr("transform", `translate(0,${height - margin})`)
-      .call(d3.axisBottom(xScale));
+    const xMin = d3.min(data, (d) => d.x) ?? -5;
+    const xMax = d3.max(data, (d) => d.x) ?? 5;
+    const yMin = d3.min(data, (d) => d.y) ?? -1;
+    const yMax = d3.max(data, (d) => d.y) ?? 1;
 
-    svg.append("g")
-      .attr("transform", `translate(${margin},0)`)
-      .call(d3.axisLeft(yScale));
+    const xPad = (xMax - xMin || 1) * 0.06;
+    const yPad = (yMax - yMin || 1) * 0.15;
 
-    // data points (animated)
-    svg.selectAll(".point")
-      .data(data)
+    const xScale = d3
+      .scaleLinear()
+      .domain([xMin - xPad, xMax + xPad])
+      .range([MARGIN.left, width - MARGIN.right]);
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([yMin - yPad, yMax + yPad])
+      .range([height - MARGIN.bottom, MARGIN.top]);
+
+    const chart = svg
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("preserveAspectRatio", "xMidYMid meet")
+      .style("width", "100%")
+      .style("height", "auto")
+      .append("g");
+
+    const defs = svg.append("defs");
+    const glow = defs
+      .append("filter")
+      .attr("id", "curve-glow")
+      .attr("x", "-50%")
+      .attr("y", "-50%")
+      .attr("width", "200%")
+      .attr("height", "200%");
+
+    glow.append("feGaussianBlur").attr("stdDeviation", 2).attr("result", "blur");
+    glow
+      .append("feMerge")
+      .selectAll("feMergeNode")
+      .data(["blur", "SourceGraphic"])
       .enter()
-      .append("circle")
-      .attr("class", "point")
-      .attr("cx", d => xScale(d.x))
-      .attr("cy", d => yScale(d.y))
-      .attr("r", 0)
-      .attr("fill", "#d4af37")
-      .transition()
-      .duration(400)
-      .attr("r", 4);
+      .append("feMergeNode")
+      .attr("in", (d) => d);
 
-    /* ---------- CURVE ---------- */
-    const xValues = d3.range(-5, 5, 0.1);
+    chart
+      .append("g")
+      .attr("class", "grid-lines")
+      .attr("transform", `translate(0,${height - MARGIN.bottom})`)
+      .call(
+        d3
+          .axisBottom(xScale)
+          .tickSize(-(height - MARGIN.top - MARGIN.bottom))
+          .tickFormat("")
+      );
 
-    const curveData = xValues.map(x => {
+    chart
+      .append("g")
+      .attr("class", "grid-lines")
+      .attr("transform", `translate(${MARGIN.left},0)`)
+      .call(
+        d3
+          .axisLeft(yScale)
+          .tickSize(-(width - MARGIN.left - MARGIN.right))
+          .tickFormat("")
+      );
+
+    chart
+      .append("g")
+      .attr("class", "axis")
+      .attr("transform", `translate(0,${height - MARGIN.bottom})`)
+      .call(d3.axisBottom(xScale).ticks(8));
+
+    chart
+      .append("g")
+      .attr("class", "axis")
+      .attr("transform", `translate(${MARGIN.left},0)`)
+      .call(d3.axisLeft(yScale).ticks(7));
+
+    const xValues = d3.range(xMin - xPad, xMax + xPad, 0.08);
+    const curveData = xValues.map((x) => {
       let y = 0;
-
-      // RBF case
       if (step.alpha && step.alpha.length === data.length) {
         step.alpha.forEach((a, i) => {
           const dist = x - data[i].x;
           y += a * Math.exp(-0.5 * dist * dist);
         });
+      } else if (step.slope !== undefined) {
+        y = step.slope * x + (step.intercept ?? 0);
       }
-
-      // Linear fallback
-      else if (step.slope !== undefined) {
-        y = step.slope * x + step.intercept;
-      }
-
       return { x, y };
     });
 
-    const line = d3.line()
-      .x(d => xScale(d.x))
-      .y(d => yScale(d.y));
+    const line = d3
+      .line()
+      .curve(d3.curveMonotoneX)
+      .x((d) => xScale(d.x))
+      .y((d) => yScale(d.y));
 
-    // main curve
-    svg.append("path")
+    chart
+      .append("path")
       .datum(curveData)
-      .attr("fill", "none")
-      .attr("stroke", "#ff4d6d")
-      .attr("stroke-width", 2)
+      .attr("class", "model-curve")
       .attr("d", line)
-      .attr("opacity", 0)
+      .attr("filter", "url(#curve-glow)")
+      .attr("stroke-dasharray", function () {
+        return `${this.getTotalLength()} ${this.getTotalLength()}`;
+      })
+      .attr("stroke-dashoffset", function () {
+        return this.getTotalLength();
+      })
       .transition()
-      .duration(500)
-      .attr("opacity", 1);
+      .duration(650)
+      .ease(d3.easeCubicOut)
+      .attr("stroke-dashoffset", 0);
 
-    /* ---------- EPSILON TUBE ---------- */
     if (step.epsilon !== undefined) {
-      const upper = curveData.map(d => ({
-        x: d.x,
-        y: d.y + step.epsilon
-      }));
+      const upper = curveData.map((d) => ({ x: d.x, y: d.y + step.epsilon }));
+      const lower = curveData.map((d) => ({ x: d.x, y: d.y - step.epsilon }));
 
-      const lower = curveData.map(d => ({
-        x: d.x,
-        y: d.y - step.epsilon
-      }));
-
-      svg.append("path")
-        .datum(upper)
-        .attr("fill", "none")
-        .attr("stroke", "#888")
-        .attr("stroke-dasharray", "5,5")
-        .attr("d", line);
-
-      svg.append("path")
-        .datum(lower)
-        .attr("fill", "none")
-        .attr("stroke", "#888")
-        .attr("stroke-dasharray", "5,5")
-        .attr("d", line);
+      chart.append("path").datum(upper).attr("class", "epsilon-line").attr("d", line);
+      chart.append("path").datum(lower).attr("class", "epsilon-line").attr("d", line);
     }
 
-    /* ---------- SUPPORT VECTORS ---------- */
-    if (step.supportVectors) {
-      svg.selectAll(".sv")
+    chart
+      .selectAll(".point")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("class", "point")
+      .attr("cx", (d) => xScale(d.x))
+      .attr("cy", (d) => yScale(d.y))
+      .attr("r", 0)
+      .transition()
+      .duration(450)
+      .attr("r", 4.5);
+
+    if (step.supportVectors?.length) {
+      chart
+        .selectAll(".sv")
         .data(step.supportVectors)
         .enter()
         .append("circle")
         .attr("class", "sv")
-        .attr("cx", d => xScale(d.x))
-        .attr("cy", d => yScale(d.y))
+        .attr("cx", (d) => xScale(d.x))
+        .attr("cy", (d) => yScale(d.y))
         .attr("r", 0)
-        .attr("fill", "#ff4d6d")
         .transition()
-        .duration(400)
-        .attr("r", 6);
+        .duration(450)
+        .attr("r", 7);
     }
-
   }, [data, step]);
 
   return (
-    <div className="card">
-      <h3>Model Visualization</h3>
-      <svg ref={ref} width={600} height={400}></svg>
-    </div>
+    <section className="viz-panel" aria-label="Model Visualization">
+      <div className="viz-header">
+        <h3>Model Visualization</h3>
+        <span className="viz-chip">SVR Fit + ε Tube</span>
+      </div>
+
+      {!data?.length || !step ? (
+        <div className="viz-empty">Add data and train to see the model curve.</div>
+      ) : (
+        <svg ref={ref} className="viz-svg" />
+      )}
+    </section>
   );
 }
