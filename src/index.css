@@ -446,3 +446,87 @@ select {
 path {
   filter: drop-shadow(0 0 6px rgba(0,255,255,0.4));
 }
+
+.credits-section {
+  text-align: center;
+  padding: 30px;
+}
+
+.credits-section h2 {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.credits-text {
+  font-size: 14px;
+  color: #9ca3af;
+  max-width: 600px;
+  margin: 0 auto 25px;
+  line-height: 1.6;
+}
+
+.team-grid {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.team-card {
+  width: 150px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.team-card img {
+      width: 120px;
+  height: 120px;
+  border-radius: 14px;
+  object-fit: cover;
+  margin-bottom: 12px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #d4af37;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 12px;
+
+  border: 2px solid #d4af37;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+}
+
+.team-card p {
+  font-size: 14px;
+  font-weight: 500;
+    width: 170px;
+  padding: 20px;
+}
+.role {
+  font-size: 12px;
+  color: #00ffff;
+}
+
+.team-card p {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 8px;
+  line-height: 1.3;
+
+  /* 🔥 better readability */
+  color: #e6edf3;
+  letter-spacing: 0.3px;
+
+  /* 🔥 handle long names */
+  /* word-break: break-word; */
+    width: 100px;
+  padding: 20px;
+}

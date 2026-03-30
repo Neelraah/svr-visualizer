@@ -5,6 +5,11 @@ import Visualization from "./components/Visualization";
 import StepViewer from "./components/StepViewer";
 import LossGraph from "./components/LossGraph";
 import { trainSVR } from "./utils/svr";
+import m1 from "./assets/mememe.jpeg";
+import m2 from "./assets/i1.jpg";
+// import m3 from "./assets/m3.jpeg";
+// import prof from "./assets/m3.jpeg";
+import "./index.css";
 
 export default function App() {
   const [data, setData] = useState([]);
@@ -232,6 +237,43 @@ export default function App() {
     <LossGraph lossHistory={lossHistory} />
   </div>
 )}
+
+
+<section className="card credits-section">
+  <h2>Project Acknowledgement</h2>
+
+  <p className="credits-text">
+    We would like to sincerely thank our professor for guiding us throughout
+    this project and helping us understand the practical implementation of
+    machine learning concepts like Support Vector Regression.
+  </p>
+
+  <h3>Team Members</h3>
+
+  <div className="team-grid">
+    <div className="team-card">
+      <img src={m1} alt="Member 1"  />
+      <p>Harleen</p>
     </div>
+
+    <div className="team-card">
+      <img src={m2} alt="Member 2"/>
+      <p>Ivan Varghese George</p>
+    </div>
+
+    <div className="team-card">
+      <img src={import.meta.env.BASE_URL +"svr-visualizer/src/assets/m3.jpeg"} alt="Member 3" style={{ width: "120px", height: "120px" }} />
+      <p>Shruti Mishra</p>
+    </div>
+
+    <div className="team-card">
+      <img src={import.meta.env.BASE_URL +"svr-visualizer/src/assets/m3.jpeg"} alt="prof" style={{ width: "120px", height: "120px" }} />
+      <p>Prof. A Swaminathan</p>
+    </div>
+  </div>
+</section>
+    </div>
+
+    
   );
 }
