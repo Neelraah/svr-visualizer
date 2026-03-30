@@ -166,6 +166,21 @@ export default function Visualization({ data, step }) {
         .duration(450)
         .attr("r", 7);
     }
+
+    if (step.predictions?.length) {
+      chart
+        .selectAll(".pred")
+        .data(step.predictions)
+        .enter()
+        .append("circle")
+        .attr("class", "pred")
+        .attr("cx", (d) => xScale(d.x))
+        .attr("cy", (d) => yScale(d.pred))
+        .attr("r", 0)
+        .transition()
+        .duration(350)
+        .attr("r", 3.5);
+    }
   }, [data, step]);
 
   return (

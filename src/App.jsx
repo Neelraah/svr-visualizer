@@ -41,6 +41,48 @@ export default function App() {
     return () => clearInterval(interval);
   }, [playing, steps]);
 
+
+  const exportCSV = () => {
+  if (!steps.length) return;
+
+  const finalStep = steps[steps.length - 1];
+
+  const rows = data.map((d, i) => {
+    let pred = 0;
+
+    if (finalStep.alpha) {
+      finalStep.alpha.forEach((a, j) => {
+        const dist = d.x - data[j].x;
+        pred += a * Math.exp(-0.5 * dist * dist);
+      });
+    } else {
+      pred = finalStep.slope * d.x + finalStep.intercept;
+    }
+
+    return {
+      x: d.x,
+      actual: d.y,
+      predicted: pred
+    };
+  });
+
+  const csv = [
+    ["x", "actual", "predicted"],
+    ...rows.map(r => [r.x, r.actual, r.predicted])
+  ]
+    .map(e => e.join(","))
+    .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "svr_output.csv";
+  a.click();
+};
+
+
   return (
     <div className="app-shell">
       <header className="hero card">
@@ -139,6 +181,9 @@ export default function App() {
             disabled={index === steps.length - 1 || steps.length === 0}
           >
             Next ➡
+          </button>
+          <button className="btn" onClick={exportCSV}>
+            Export CSV
           </button>
         </div>
 
