@@ -1,0 +1,119 @@
+/* RESET */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: #0f0f0f;
+  color: #f5e6e8;
+}
+
+/* LAYOUT */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 24px;
+}
+
+/* HEADINGS */
+h1 {
+  color: #ff4d6d;
+  margin-bottom: 20px;
+}
+
+h2, h3 {
+  margin-bottom: 10px;
+}
+
+/* SECTIONS */
+.card {
+  background: #1a1a1a;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(255, 77, 109, 0.1);
+}
+
+/* BUTTONS */
+button {
+  background: #ff4d6d;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  margin-right: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+/* INPUT */
+input {
+  margin-left: 10px;
+  padding: 5px;
+  border-radius: 5px;
+  border: none;
+}
+
+/* FLEX */
+.row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+svg {
+  background: #111;
+  border-radius: 10px;
+}
+
+.controls-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.progress {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+button {
+  background: linear-gradient(135deg, #ff4d6d, #d4af37);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.video-container {
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card p {
+  line-height: 1.6;
+  color: #ddd;
+}
+
+.card ul {
+  padding-left: 20px;
+}
+
+.card li {
+  margin-bottom: 5px;
+}
