@@ -3,25 +3,28 @@ import DataInput from "./components/DataInput";
 import Controls from "./components/Controls";
 import Visualization from "./components/Visualization";
 import StepViewer from "./components/StepViewer";
+import LossGraph from "./components/LossGraph";
 import { trainSVR } from "./utils/svr";
 
 export default function App() {
   const [data, setData] = useState([]);
   const [params, setParams] = useState({ epsilon: 0.5 });
-
+  const [model, setModel] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [steps, setSteps] = useState([]);
   const [lossHistory, setLossHistory] = useState([]);
   const [index, setIndex] = useState(0);
+    const [metrics, setMetrics] = useState(null);
 
   const currentStep = steps[index];
 
   const handleTrain = () => {
-    const { steps, lossHistory } = trainSVR(data, params);
-    setSteps(steps);
-    setLossHistory(lossHistory);
-    setIndex(0);
-    setPlaying(false);
+      const { steps, model, metrics, lossHistory } = trainSVR(data, params);
+  setSteps(steps);
+  setModel(model); // add this state
+  setMetrics(metrics);
+  setLossHistory(lossHistory);
+  setIndex(0);
   };
 
   useEffect(() => {
@@ -37,32 +40,28 @@ export default function App() {
         return i + 1;
       });
     }, 500);
+    
 
     return () => clearInterval(interval);
   }, [playing, steps]);
 
 
   const exportCSV = () => {
-  if (!steps.length) return;
+  if (!model || !data.length) return;
 
-  const finalStep = steps[steps.length - 1];
-
-  const rows = data.map((d, i) => {
+  const rows = data.map(d => {
     let pred = 0;
 
-    if (finalStep.alpha) {
-      finalStep.alpha.forEach((a, j) => {
-        const dist = d.x - data[j].x;
-        pred += a * Math.exp(-0.5 * dist * dist);
-      });
-    } else {
-      pred = finalStep.slope * d.x + finalStep.intercept;
+    try {
+      pred = model.predictOne([d.x]);
+    } catch {
+      pred = 0;
     }
 
     return {
       x: d.x,
       actual: d.y,
-      predicted: pred
+      predicted: Number(pred.toFixed(4))
     };
   });
 
@@ -81,7 +80,6 @@ export default function App() {
   a.download = "svr_output.csv";
   a.click();
 };
-
 
   return (
     <div className="app-shell">
@@ -151,6 +149,20 @@ export default function App() {
           <button className="btn btn-primary" onClick={handleTrain}>
             Train Model
           </button>
+
+         <div>
+            <label>Kernel:</label>
+            <select
+              value={params.kernel}
+              onChange={(e) =>
+                setParams({ ...params, kernel: e.target.value })
+              }
+            >
+              <option value="RBF">RBF</option>
+              <option value="LINEAR">Linear</option>
+            </select>
+          </div>
+
           <button
             className="btn btn-success"
             onClick={() => setPlaying(true)}
@@ -205,6 +217,21 @@ export default function App() {
           <StepViewer step={currentStep} lossHistory={lossHistory} />
         </div>
       </section>
+
+      {metrics && (
+  <div className="card">
+    <h3>Model Performance</h3>
+
+    <p><strong>MSE:</strong> {metrics.mse.toFixed(4)}</p>
+    <p><strong>R² Score:</strong> {metrics.r2.toFixed(4)}</p>
+
+    <p style={{ fontSize: "12px", color: "#aaa" }}>
+      R² closer to 1 indicates better fit
+    </p>
+
+    <LossGraph lossHistory={lossHistory} />
+  </div>
+)}
     </div>
   );
 }

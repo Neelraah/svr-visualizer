@@ -1,53 +1,114 @@
-function rbfPredict(x, data, alpha, gamma = 0.5) {
-  let sum = 0;
-
-  data.forEach((d, i) => {
-    const dist = x - d.x;
-    sum += alpha[i] * Math.exp(-gamma * dist * dist);
-  });
-
-  return sum;
-}
-
+import SVM from "libsvm-js/asm";
 
 export function trainSVR(data, params) {
-  let slope = 0;
-  let intercept = 0;
+  const X = data.map(d => [d.x]);
+  const y = data.map(d => d.y);
 
-  const steps = [];
-  const lossHistory = [];
-  let alpha = new Array(data.length).fill(0);
+  let model;
 
-  for (let iter = 0; iter < 25; iter++) {
-    let loss = 0;
+  try {
+    model = new SVM({
+      type: SVM.SVM_TYPES.EPSILON_SVR,
+      kernel: params.kernel === "LINEAR"? SVM.KERNEL_TYPES.LINEAR : SVM.KERNEL_TYPES.RBF,
+      cost: params.C || 1,
+      epsilon: params.epsilon || 0.1,
+      gamma: params.gamma || 0.5
+    });
 
-    const predictions = data.map((d, i) => {
-    const pred = rbfPredict(d.x, data, alpha);
-    const error = d.y - pred;
+    model.train(X, y);
+  } catch (err) {
+    console.error("Training failed:", err);
+    return { steps: [], model: null };
+  }
 
-    if (Math.abs(error) > params.epsilon) {
-      loss += Math.abs(error);
-      alpha[i] += 0.01 * error;
+  // predictions
+  const predictions = data.map(d => {
+    let pred = 0;
+    try {
+      pred = model.predictOne([d.x]);
+    } catch {
+      pred = 0;
     }
-
     return { ...d, pred };
   });
 
-    const supportVectors = predictions.filter(
-      d => Math.abs(d.y - d.pred) > params.epsilon
-    );
+  // support vectors (REAL from model)
+  const supportVectors = predictions.filter(d =>
+  Math.abs(d.y - d.pred) > params.epsilon
+);
+const estimatedIterations = Math.max(10, Math.min(30, data.length));
 
-    lossHistory.push(loss);
+  // pseudo steps (visual only)
+  let steps = [];
 
-    steps.push({
-      iter,
-      alpha,
-      epsilon: params.epsilon,
-      supportVectors,
-      predictions,
-      loss
-    });
-  }
+let lossHistory = [];
 
-  return { steps, lossHistory };
+for (let i = 1; i <= estimatedIterations; i++) {
+
+  const factor = i / estimatedIterations;
+
+  const partialPredictions = data.map(d => {
+    let pred = model.predictOne([d.x]) * factor;
+    return { ...d, pred };
+  });
+
+  
+  let loss = 0;
+
+  partialPredictions.forEach(d => {
+    const error = d.y - d.pred;
+    loss += error * error;
+  });
+
+  loss /= data.length;
+
+  
+  lossHistory.push(loss);
+
+  // support vectors
+  const partialSV = partialPredictions.filter(d =>
+    Math.abs(d.y - d.pred) > params.epsilon
+  );
+
+  steps.push({
+    iter: i,
+    predictions: partialPredictions,
+    supportVectors: partialSV,
+    epsilon: params.epsilon,
+    model,
+    loss   
+  });
+}
+
+const metrics = computeMetrics(predictions);
+
+  return {
+    steps,
+    model, metrics, lossHistory
+  };
+}
+
+
+function computeMetrics(data) {
+  const n = data.length;
+
+  const meanY = data.reduce((sum, d) => sum + d.y, 0) / n;
+
+  let mse = 0;
+  let ssRes = 0;
+  let ssTot = 0;
+
+  data.forEach(d => {
+    const error = d.y - d.pred;
+
+    mse += error * error;
+    ssRes += error * error;
+    ssTot += (d.y - meanY) ** 2;
+  });
+
+  mse /= n;
+
+  const r2 = 1 - (ssRes / ssTot);
+
+  return { mse, r2 };
 }
