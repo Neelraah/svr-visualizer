@@ -7,8 +7,9 @@ import LossGraph from "./components/LossGraph";
 import { trainSVR } from "./utils/svr";
 import m1 from "./assets/mememe.jpeg";
 import m2 from "./assets/i1.jpg";
-// import m3 from "./assets/m3.jpeg";
-// import prof from "./assets/m3.jpeg";
+
+ import m3 from "./assets/Shruti.jpeg";
+import m4 from "./assets/prof.jpeg";
 import "./index.css";
 
 export default function App() {
@@ -263,12 +264,12 @@ export default function App() {
     </div>
 
     <div className="team-card">
-      <img src={import.meta.env.BASE_URL +"svr-visualizer/src/assets/m3.jpeg"} alt="Member 3" style={{ width: "120px", height: "120px" }} />
+      <img src={m3} alt="Member 3" style={{ width: "120px", height: "120px" }} />
       <p>Shruti Mishra</p>
     </div>
 
     <div className="team-card">
-      <img src={import.meta.env.BASE_URL +"svr-visualizer/src/assets/m3.jpeg"} alt="prof" style={{ width: "120px", height: "120px" }} />
+      <img src={m4} alt="prof" style={{ width: "120px", height: "120px" }} />
       <p>Prof. A Swaminathan</p>
     </div>
   </div>
