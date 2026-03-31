@@ -122,13 +122,14 @@ export default function App() {
           <h2>Concept Video</h2>
           <div className="video-container">
             <iframe
-              width="100%"
-              height="100%"
-              src="https://www.youtube.com/embed/T5pnH5XnG2A"
-              title="SVR Explanation"
-              frameBorder="0"
-              allowFullScreen
-            ></iframe>
+  width="100%"
+  height="100%"
+  src="https://www.youtube.com/embed/kPw1IGUAoY8"
+  title="SVR Explanation"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
           </div>
         </article>
       </section>
