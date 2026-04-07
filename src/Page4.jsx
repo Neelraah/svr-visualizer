@@ -39,8 +39,8 @@ export default function Page4() {
       {/* TEAM MEMBERS */}
       <motion.div className="team-grid clean-team" variants={stagger}>
   {[
-    { img: m1, name: "Harleen", role: "Frontend Development & UI Design" },
-    { img: m2, name: "Ivan Varghese George", role: "SVR Implementation & Logic" },
+    { img: m1, name: "Harleen", role: "SVR Implementation & Logic" },
+    { img: m2, name: "Ivan Varghese George", role: "Frontend Development & UI Design" },
     { img: m3, name: "Shruti Mishra", role: "Data Handling & Model Evaluation" }
   ].map((member, i) => (
 
